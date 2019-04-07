@@ -198,7 +198,9 @@ function atraAgentSelect()
         echo 'Nincs találálat';
         wp_die();
     }
-
+/*
+ * Gagyi adatbázis ... egy sorban több adatot is tárol vesszővel elválasztva. :(
+ */
     $agents = explode(',', $data['agent']);
     $phones = explode(',', $data['phone']);
     $emails = explode(',', $data['email']);
@@ -213,6 +215,15 @@ echo '
     <div class="ast-row">
     ';
 for ($i = 0; $i < count($agents); $i++) {
+
+        $agent = empty($agents[$i]) ? '-' : $agents[$i];
+
+        if(empty($agents[$i])){
+            $phones[$i] = '-';
+        }
+
+        $email = empty($emails[$i]) ? '-' : $emails[$i];
+
         $phone = preg_replace('/([0-9]{2})([0-9]{3})([0-9]{2})([0-9]{2})/', '+(36)$1/$2 $3 $4', $phones[$i]);
 
         echo '
@@ -223,7 +234,7 @@ for ($i = 0; $i < count($agents); $i++) {
                         <span class="elementor-icon-list-icon">
                             <i class="fa fa-user" aria-hidden="true"></i>
                         </span>
-                        <span class="elementor-icon-list-text">'.$agents[$i].'</span>
+                        <span class="elementor-icon-list-text">'.$agent.'</span>
                     </li> 
                     <li class="elementor-icon-list-item">
                         <a href="tel:'.$phone.'">
@@ -238,7 +249,7 @@ for ($i = 0; $i < count($agents); $i++) {
                             <span class="elementor-icon-list-icon">
                                 <i class="fa fa-at" aria-hidden="true"></i>
                             </span>
-                            <span class="elementor-icon-list-text">'.$emails[$i].'</span>
+                            <span class="elementor-icon-list-text">'.$email.'</span>
                         </a>
                     </li>
                 </ul>
