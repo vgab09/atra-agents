@@ -70,19 +70,13 @@ function atraAgentsPluginUninstall()
 
 function atraThemeEnqueueScripts()
 {
-    wp_register_style('atra_jquery_ui',plugin_dir_url( __FILE__ ).'css/jquery-ui.min.css');
-    wp_register_style('atra_jquery_ui',plugin_dir_url( __FILE__ ).'/css/jquery-ui.structure.min.css');
-    wp_register_style('atra_jquery_ui',plugin_dir_url( __FILE__ ).'/css/jquery-ui.theme.min.css');
-    wp_enqueue_style( 'atra_jquery_ui');
+    wp_register_style('atra_jquery_ui', plugin_dir_url(__FILE__) . 'css/jquery-ui.min.css');
+    wp_register_style('atra_jquery_ui', plugin_dir_url(__FILE__) . '/css/jquery-ui.structure.min.css');
+    wp_register_style('atra_jquery_ui', plugin_dir_url(__FILE__) . '/css/jquery-ui.theme.min.css');
+    wp_enqueue_style('atra_jquery_ui');
 
     wp_enqueue_script('jquery-ui-core');
     wp_enqueue_script('jquery-ui-autocomplete');
-}
-
-function atraThemeEnqueueCss(){
-
-
-
 }
 
 
@@ -94,7 +88,7 @@ function atraAutocompleteInputShortcode($atts)
     $html = sprintf(' 
     <div class="form-group">        
         <input name="atra-agents-search-input" class="form-control" id="atra-agents-search-input" type="text"  required placeholder="%s" style="width: 250px;">
-        <button type="submit" class="btn btn-primary mb-2" style="margin: 0px 10px; padding: .6em 1em .4em;">%s</button>
+        <button id="atra-agents-search-button" class="btn btn-primary mb-2" style="margin: 0px 10px; padding: .6em 1em .4em;">%s</button>
     </div>', $placeholder, $button);
 
     return $html;
@@ -123,7 +117,35 @@ function atraThemeAutocompleteJs()
                 },
                 minLength: 2,
                 delay: 0,
+                select: function (event, ui) {
+                    $.ajax({
+                        url: '<?php echo admin_url('admin-ajax.php') ?>',
+                        dataType: "html",
+                        data: {
+                            'action': 'atra_agent_select',
+                            'selected': ui.item.id
+                        },
+                        success: function (data) {
+                            jQuery('#atra-result-box').html(data);
+                        }
+                    })
+                }
             });
+            jQuery('#atra-agents-search-button').click(function (e) {
+                e.stopPropagation();
+                var value = jQuery('#atra-agents-search-input').first().val();
+                $.ajax({
+                    url: '<?php echo admin_url('admin-ajax.php') ?>',
+                    dataType: "html",
+                    data: {
+                        'action': 'atra_agent_select',
+                        'search': value.trim()
+                    },
+                    success: function (data) {
+                        jQuery('#atra-result-box').html(data);
+                    }
+                })
+            })
         });
     </script>
     <?php
@@ -149,12 +171,101 @@ function atraAgentSearch()
     echo json_encode([$searchText]);
     wp_die();
 }
+
+function atraAgentSelect()
+{
+
+    global $wpdb;
+
+    $selected_id = isset($_GET['selected']) && !empty($_GET['selected']) ? intval($_GET['selected']) : false;
+    $searchText = isset($_GET['search']) && !empty($_GET['search']) ? strip_tags($_GET['search']) : false;
+    $table_name = $wpdb->prefix . ATRA_AGENTS_TABLE;
+
+    $sql = "SELECT agent, phone, email  FROM $table_name WHERE ";
+
+    if ($selected_id !== false) {
+        $data = $wpdb->get_row($wpdb->prepare($sql . ' agent_id = %d', $selected_id),ARRAY_A);
+
+    } elseif ($searchText !== false) {
+        $data = $wpdb->get_row($wpdb->prepare($sql . ' city LIKE %s LIMIT 1', $searchText),ARRAY_A);
+    }
+    else{
+        echo 'Nincs találálat';
+        wp_die();
+    }
+
+    if(!count($data)){
+        echo 'Nincs találálat';
+        wp_die();
+    }
+
+    $agents = explode(',', $data['agent']);
+    $phones = explode(',', $data['phone']);
+    $emails = explode(',', $data['email']);
+
+echo '
+<div class="ast-container">
+    <div class="ast-row">
+        <span>A megadott településhez tartozó tanácsadónk:</span>
+    </div>
+</div>
+<div class="ast-container">
+    <div class="ast-row">
+    ';
+for ($i = 0; $i < count($agents); $i++) {
+        $phone = preg_replace('/([0-9]{2})([0-9]{3})([0-9]{2})([0-9]{2})/', '+(36)$1/$2 $3 $4', $phones[$i]);
+
+        echo '
+        <div class="ast-col-sm-6">
+            <div class="elementor-widget-container">
+                <ul class="elementor-icon-list-items">
+                    <li class="elementor-icon-list-item">
+                        <span class="elementor-icon-list-icon">
+                            <i class="fa fa-user" aria-hidden="true"></i>
+                        </span>
+                        <span class="elementor-icon-list-text">'.$agents[$i].'</span>
+                    </li> 
+                    <li class="elementor-icon-list-item">
+                        <a href="tel:'.$phone.'">
+                            <span class="elementor-icon-list-icon">
+                                <i class="fa fa-mobile" aria-hidden="true"></i>
+                            </span>
+                            <span class="elementor-icon-list-text">'.$phone.'</span>
+                        </a>
+                    </li>
+                   <li class="elementor-icon-list-item">
+                        <a href="mailto:'.$emails[$i].'">			
+                            <span class="elementor-icon-list-icon">
+                                <i class="fa fa-at" aria-hidden="true"></i>
+                            </span>
+                            <span class="elementor-icon-list-text">'.$emails[$i].'</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>';
+    }
+echo '
+    </div>
+</div>';
+
+    wp_die();
+}
+
+function atraResultBoxShortcode()
+{
+    return '<div id="atra-result-box"></div>';
+}
+
 add_action('wp_enqueue_scripts', 'atraThemeEnqueueScripts');
 add_action('wp_footer', 'atraThemeAutocompleteJs');
 add_action('wp_ajax_atra_agent_search', 'atraAgentSearch');
 add_action('wp_ajax_atra_agent_search', 'atraAgentSearch');
+add_action('wp_ajax_atra_agent_select', 'atraAgentSelect');
+add_action('wp_ajax_atra_agent_select', 'atraAgentSelect');
 
 add_shortcode('atra_autocomplete_input_shortcode', 'atraAutocompleteInputShortcode');
+add_shortcode('atra_result_box_shortcode', 'atraResultBoxShortcode');
 
 register_activation_hook(__FILE__, 'atraAgentsPluginActivation');
 register_uninstall_hook(__FILE__, 'atraAgentsPluginUninstall');
