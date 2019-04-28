@@ -198,14 +198,14 @@ function atraAgentSelect()
         echo 'Nincs találálat';
         wp_die();
     }
-/*
- * Gagyi adatbázis ... egy sorban több adatot is tárol vesszővel elválasztva. :(
- */
+    /*
+     * Gagyi adatbázis ... egy sorban több adatot is tárol vesszővel elválasztva. :(
+     */
     $agents = explode(',', $data['agent']);
     $phones = explode(',', $data['phone']);
     $emails = explode(',', $data['email']);
 
-echo '
+    echo '
 <div class="ast-container">
     <div class="ast-row">
         <span>A megadott településhez tartozó tanácsadónk:</span>
@@ -214,7 +214,7 @@ echo '
 <div class="ast-container">
     <div class="ast-row">
     ';
-for ($i = 0; $i < count($agents); $i++) {
+    for ($i = 0; $i < count($agents); $i++) {
 
         $agent = empty($agents[$i]) ? '-' : $agents[$i];
 
@@ -255,8 +255,9 @@ for ($i = 0; $i < count($agents); $i++) {
                 </ul>
             </div>
         </div>';
+
     }
-echo '
+    echo '
     </div>
 </div>';
 
@@ -271,9 +272,9 @@ function atraResultBoxShortcode()
 add_action('wp_enqueue_scripts', 'atraThemeEnqueueScripts');
 add_action('wp_footer', 'atraThemeAutocompleteJs');
 add_action('wp_ajax_atra_agent_search', 'atraAgentSearch');
-add_action('wp_ajax_atra_agent_search', 'atraAgentSearch');
+add_action('wp_ajax_nopriv_atra_agent_search', 'atraAgentSearch');
 add_action('wp_ajax_atra_agent_select', 'atraAgentSelect');
-add_action('wp_ajax_atra_agent_select', 'atraAgentSelect');
+add_action('wp_ajax_nopriv_atra_agent_select', 'atraAgentSelect');
 
 add_shortcode('atra_autocomplete_input_shortcode', 'atraAutocompleteInputShortcode');
 add_shortcode('atra_result_box_shortcode', 'atraResultBoxShortcode');
