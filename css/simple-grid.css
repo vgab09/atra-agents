@@ -1,0 +1,72 @@
+/**
+*** SIMPLE GRID
+*** (C) ZACH COLE 2016
+**/
+
+/* ==== GRID SYSTEM ==== */
+
+.atra-container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+
+  color: #ffffff;
+}
+
+.atra-container .elementor-icon-list-item{
+  margin: 0.25rem 0 !important;
+}
+
+.atra-container .elementor-icon-list-items{
+  background-color: #0082C9;
+  padding: 0.75rem !important;
+}
+
+.atra-container .elementor-icon-list-item:hover a{
+  color: #80c3ec;
+}
+
+.atra-row {
+  position: relative;
+  width: 100%;
+}
+
+.atra-row [class^="atra-col"] {
+  float: left;
+  margin: 0.5rem 2%;
+  min-height: 0.125rem;
+}
+
+.atra-col-1,
+.atra-col-2,
+.atra-col-3,
+.atra-col-4,
+.atra-col-5,
+.atra-col-6,
+.atra-col-7,
+.atra-col-8,
+.atra-col-9,
+.atra-col-10,
+.atra-col-11,
+.atra-col-12 {
+  width: 96%;
+}
+
+.atra-row::after {
+	content: "";
+	display: table;
+	clear: both;
+}
+
+@media only screen and (min-width: 45em) {  /* 720px */
+  
+  .atra-col-6 {
+    width: 46%;
+  } 
+
+  .atra-col-12 {
+    width: 96%;
+  }
+
+}
+
